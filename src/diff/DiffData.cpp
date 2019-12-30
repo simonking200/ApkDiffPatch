@@ -253,7 +253,7 @@ bool getSamePairList(UnZipper* newZip,UnZipper* oldZip,
                         continue;
                     findSame=true;
                     oldSameIndex=oldIndex;
-                    break;
+                    if (zipFile_name(newZip,i)==zipFile_name(oldZip,oldIndex)) break;
                 }else{
                     printf("WARNING: crc32 equal but data not equal! file index: %d,%d\n",i,oldIndex);
                     printf("   name:\"%s\"\n        \"%s\"\n",zipFile_name(newZip,i).c_str(),
@@ -348,13 +348,17 @@ static bool _serializeZipDiffData(std::vector<TByte>& out_data,const ZipDiffData
     }
     std::vector<TByte> headCode;
     {
-        headCode.resize((size_t)compressPlugin->maxCompressedSize(headData.size()));
-        size_t codeSize=hdiff_compress_mem(compressPlugin,headCode.data(),headCode.data()+headCode.size(),
-                                           headData.data(),headData.data()+headData.size());
-        if ((0<codeSize)&(codeSize<=headCode.size()))
-            headCode.resize(codeSize);
-        else
-            return false;//error
+        if (headData.empty()){
+            headCode.clear();
+        }else{
+            headCode.resize((size_t)compressPlugin->maxCompressedSize(headData.size()));
+            size_t codeSize=hdiff_compress_mem(compressPlugin,headCode.data(),headCode.data()+headCode.size(),
+                                               headData.data(),headData.data()+headData.size());
+            if ((0<codeSize)&(codeSize<=headCode.size()))
+                headCode.resize(codeSize);
+            else
+                return false;//error
+        }
     }
     
     {//type version
